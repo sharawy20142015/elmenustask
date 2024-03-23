@@ -1,14 +1,10 @@
 import numpy as np
 from prophet import Prophet
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.linear_model import LinearRegression
-from sklearn.preprocessing import PolynomialFeatures, MinMaxScaler
 import plotly.express as px 
 import streamlit as st
 import sqlite3
 from statsmodels.tsa.seasonal import seasonal_decompose
-import plotly.graph_objects as go
 from sklearn.metrics import mean_squared_error
 tasks=st.selectbox('Tasks',['EDA','Customer Segmentation','Churn Analysis','Predictive Modeling','Visualization and Reporting'])
 class Tasks:

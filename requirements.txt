@@ -1,9 +1,7 @@
 pandas
 streamlit
 plotly
-datetime
 numpy
 scikit-learn
-matplotlib
 statsmodels
 prophet

@@ -8,6 +8,7 @@ import plotly.express as px
 import streamlit as st
 import sqlite3
 from statsmodels.tsa.seasonal import seasonal_decompose
+from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from prophet.plot import plot_plotly, plot_components_plotly
 from sklearn.metrics import mean_squared_error
@@ -202,8 +203,8 @@ class Tasks:
             st.write(f"MSE: {mse}")
         else:
             st.dataframe(orders_item_product_pivot)
-            
-            
+        self.conn.close()
+        self.conn_geo.close()
             
      
      

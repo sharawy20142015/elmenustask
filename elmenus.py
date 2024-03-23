@@ -7,42 +7,66 @@ import sqlite3
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.metrics import mean_squared_error
 tasks=st.selectbox('Tasks',['EDA','Customer Segmentation','Churn Analysis','Predictive Modeling','Visualization and Reporting'])
+import sqlite3
+import pandas as pd
+
 class Tasks:
-    def __init__(self) :
-        self.database="elmenus.db"
-        self.databasegeolocation="elmenus-geolocation.db"
-        self.conn_geo=sqlite3.connect(self.databasegeolocation)
-        self.conn=sqlite3.connect(self.database)
-        self.orders_query = 'select * from orders '
-        self.order_df=pd.read_sql_query(self.orders_query,self.conn)
-        self.order_df['order_purchase_timestamp']=pd.to_datetime(self.order_df['order_purchase_timestamp'])
-        self.order_df['order_purchase_timestamp']=self.order_df['order_purchase_timestamp'].dt.strftime('%Y-%m-%d')
-        self.popualr_product_category_query='''select order_products.order_id,order_products.product_id,order_products.product_category_name,order_products.seller_id from (
-                                                    select order_items.*,products.product_category_name from order_items left join products
-                                                    on order_items.product_id=products.product_id) as order_products
-                                                    left join orders
-                                                    on orders.order_id=order_products.order_id
-                                                    '''
-        self.popualr_product_category_df=pd.read_sql_query( self.popualr_product_category_query,self.conn)
-        self.geolocation_query='select * from geolocation'
-        self.geolocation_df=pd.read_sql_query(self.geolocation_query,self.conn_geo)
-        self.customers_query='select * from Customers'
-        self.customers_df=pd.read_sql_query(self.customers_query,self.conn)
-        self.orders_order_items_query='''select order_items.*,orders.customer_id from order_items left join orders on order_items.order_id=orders.order_id'''
-        self.orders_order_items_df=pd.read_sql_query(self.orders_order_items_query,self.conn)
-        self.productname_location_query='''select customer_order_product.customer_city,products.product_category_name from (
-                            select customer_city,product_id from (
-                            select customers.customer_city,orders.order_id from customers left join orders on customers.customer_id=orders.customer_id) as customer_orders
-                            inner join order_items
-                            on order_items.order_id=customer_orders.order_id)as customer_order_product inner join products
-                            on customer_order_product.product_id=products.product_id
-                            '''
-        self.productname_location_df=pd.read_sql_query(self.productname_location_query,self.conn)
-        self.orders_item_product_query='''select order_items_products.*,orders.order_purchase_timestamp from 
-                        (select order_items.*,products.product_category_name from order_items left join products on order_items.product_id=products.product_id) as order_items_products
-                        left join orders
-                        on order_items_products.order_id=orders.order_id'''
-        self.orders_item_product_df=pd.read_sql_query(self.orders_item_product_query,self.conn)
+    def __init__(self):
+        self.database = "elmenus.db"
+        self.databasegeolocation = "elmenus-geolocation.db"
+        self.conn_geo = sqlite3.connect(self.databasegeolocation)
+        self.conn = sqlite3.connect(self.database)
+        self.orders_query = 'SELECT * FROM orders'
+        self.order_df = pd.read_sql_query(self.orders_query, self.conn)
+        self.order_df['order_purchase_timestamp'] = pd.to_datetime(self.order_df['order_purchase_timestamp'])
+        self.order_df['order_purchase_timestamp'] = self.order_df['order_purchase_timestamp'].dt.strftime('%Y-%m-%d')
+
+        self.popular_product_category_query = '''
+            SELECT op.order_id, op.product_id, op.product_category_name, op.seller_id
+            FROM (
+                SELECT oi.*, p.product_category_name
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.product_id
+            ) AS op
+            LEFT JOIN orders o ON op.order_id = o.order_id
+        '''
+        self.popular_product_category_df = pd.read_sql_query(self.popular_product_category_query, self.conn)
+
+        self.geolocation_query = 'SELECT * FROM geolocation'
+        self.geolocation_df = pd.read_sql_query(self.geolocation_query, self.conn_geo)
+
+        self.customers_query = 'SELECT * FROM Customers'
+        self.customers_df = pd.read_sql_query(self.customers_query, self.conn)
+
+        self.orders_order_items_query = '''
+            SELECT oi.*, o.customer_id
+            FROM order_items oi
+            LEFT JOIN orders o ON oi.order_id = o.order_id
+        '''
+        self.orders_order_items_df = pd.read_sql_query(self.orders_order_items_query, self.conn)
+
+        self.productname_location_query = '''
+            SELECT cop.customer_city, p.product_category_name
+            FROM (
+                SELECT c.customer_city, o.order_id
+                FROM customers c
+                LEFT JOIN orders o ON c.customer_id = o.customer_id
+            ) AS co
+            INNER JOIN order_items oi ON co.order_id = oi.order_id
+            INNER JOIN products p ON oi.product_id = p.product_id
+        '''
+        self.productname_location_df = pd.read_sql_query(self.productname_location_query, self.conn)
+
+        self.orders_item_product_query = '''
+            SELECT oip.*, o.order_purchase_timestamp
+            FROM (
+                SELECT oi.*, p.product_category_name
+                FROM order_items oi
+                LEFT JOIN products p ON oi.product_id = p.product_id
+            ) AS oip
+            LEFT JOIN orders o ON oip.order_id = o.order_id
+        '''
+        self.orders_item_product_df = pd.read_sql_query(self.orders_item_product_query, self.conn)
     def check_order(self):
         st.subheader('Explore the distribution of orders over time, analyzing trends in order volume and orderstatuses')
         self.order_status_options = ['All Status'] + list(self.order_df['order_status'].unique())

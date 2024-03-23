@@ -220,9 +220,12 @@ class Tasks:
 task= Tasks()
 if tasks == 'EDA':
     task.check_order()
+    if st.button('Click for Geolocation'):
+        task.customer_geolocation()
 if tasks=='Customer Segmentation':
     task.customer_segmentation()
 if tasks=='Predictive Modeling':
     task.predictive_modeling()
-if st.button('Click for Geolocation'):
-    task.customer_geolocation()
+    
+
+    

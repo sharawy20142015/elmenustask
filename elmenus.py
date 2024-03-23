@@ -7,8 +7,6 @@ import sqlite3
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.metrics import mean_squared_error
 tasks=st.selectbox('Tasks',['EDA','Customer Segmentation','Churn Analysis','Predictive Modeling','Visualization and Reporting'])
-import sqlite3
-import pandas as pd
 
 class Tasks:
     def __init__(self):
@@ -46,25 +44,19 @@ class Tasks:
         self.orders_order_items_df = pd.read_sql_query(self.orders_order_items_query, self.conn)
 
         self.productname_location_query = '''
-            SELECT cop.customer_city, p.product_category_name
-            FROM (
-                SELECT c.customer_city, o.order_id
-                FROM customers c
-                LEFT JOIN orders o ON c.customer_id = o.customer_id
-            ) AS co
-            INNER JOIN order_items oi ON co.order_id = oi.order_id
-            INNER JOIN products p ON oi.product_id = p.product_id
+            SELECT c.customer_city, p.product_category_name
+            FROM customers c
+            LEFT JOIN orders o ON c.customer_id = o.customer_id
+            LEFT JOIN order_items oi ON o.order_id = oi.order_id
+            LEFT JOIN products p ON oi.product_id = p.product_id
         '''
         self.productname_location_df = pd.read_sql_query(self.productname_location_query, self.conn)
 
         self.orders_item_product_query = '''
-            SELECT oip.*, o.order_purchase_timestamp
-            FROM (
-                SELECT oi.*, p.product_category_name
-                FROM order_items oi
-                LEFT JOIN products p ON oi.product_id = p.product_id
-            ) AS oip
-            LEFT JOIN orders o ON oip.order_id = o.order_id
+            SELECT oi.*, p.product_category_name, o.order_purchase_timestamp
+            FROM order_items oi
+            LEFT JOIN products p ON oi.product_id = p.product_id
+            LEFT JOIN orders o ON oi.order_id = o.order_id
         '''
         self.orders_item_product_df = pd.read_sql_query(self.orders_item_product_query, self.conn)
     def check_order(self):
@@ -104,18 +96,16 @@ class Tasks:
     
     def product_seller(self):
         st.subheader(' The most popular product categories and sellers on the platform')
-        self.popualr_product_category_category_name_pivot=self.popualr_product_category_df.pivot_table(values='order_id',index='product_category_name',aggfunc='count').reset_index().sort_values(by='order_id',ascending=False)
+        self.popualr_product_category_category_name_pivot=self.popular_product_category_df .pivot_table(values='order_id',index='product_category_name',aggfunc='count').reset_index().sort_values(by='order_id',ascending=False)
         self.popualr_product_category_category_name_pivot.rename(columns={'order_id':'Total Orders'},inplace=True)
         fig=px.histogram(self.popualr_product_category_category_name_pivot,x='product_category_name',y='Total Orders',title=' Popular Categories with Total Order')
-        popualr_product_category_seller_pivot=self.popualr_product_category_df.pivot_table(values='order_id',index='seller_id',aggfunc='count').reset_index().sort_values(by='order_id',ascending=False)
+        popualr_product_category_seller_pivot=self.popular_product_category_df.pivot_table(values='order_id',index='seller_id',aggfunc='count').reset_index().sort_values(by='order_id',ascending=False)
         popualr_product_category_seller_pivot.rename(columns={'order_id':'Total Orders'},inplace=True)
         st.plotly_chart(fig)
         fig=px.histogram(popualr_product_category_seller_pivot.head(30),x='seller_id',y='Total Orders',title='Top 20 Sellers ID')
         st.plotly_chart(fig)
-        return self.customer_geolocation()
-
-    def customer_geolocation(self):
         st.subheader('3-customer demographics, such as location and purchasing behavior')
+    def customer_geolocation(self):
         customers_orders_query='''select orders.*,customers.customer_zip_code_prefix,customers.customer_city  from orders left join customers
                                 on orders.customer_id=customers.customer_id'''
         self.customers_orders_df=pd.read_sql_query(customers_orders_query,self.conn)
@@ -215,7 +205,7 @@ class Tasks:
             fig.add_scatter(x=orders_item_product_pivot['ds'], y=orders_item_product_pivot['y'], mode='lines+markers', name='Original Data')
             fig.update_layout(width=800, height=600) 
             st.plotly_chart(fig)
-            st.dataframe(predictions)
+            st.dataframe(predictions.iloc[:,:5])
             mse = mean_squared_error(orders_item_product_pivot['y'][-1*int(period):], predictions['yhat'][-1*int(period):])
             st.write('MSE It is a metric used to measure the average squared difference between the estimated values and the actual values.')
             st.write(f"MSE: {mse}")
@@ -227,11 +217,12 @@ class Tasks:
      
      
 
-task = Tasks()
+task= Tasks()
 if tasks == 'EDA':
     task.check_order()
 if tasks=='Customer Segmentation':
     task.customer_segmentation()
 if tasks=='Predictive Modeling':
     task.predictive_modeling()
-    
+if st.button('Click for Geolocation'):
+    task.customer_geolocation()

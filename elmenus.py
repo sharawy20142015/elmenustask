@@ -2,14 +2,12 @@ import numpy as np
 from prophet import Prophet
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 from sklearn.linear_model import LinearRegression
 from sklearn.preprocessing import PolynomialFeatures, MinMaxScaler
 import plotly.express as px 
 import streamlit as st
 import sqlite3
 from statsmodels.tsa.seasonal import seasonal_decompose
-from plotly.subplots import make_subplots
 import plotly.graph_objects as go
 from prophet.plot import plot_plotly, plot_components_plotly
 from sklearn.metrics import mean_squared_error

@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px 
 import streamlit as st
 import sqlite3
+from datetime import datetime
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.metrics import mean_squared_error
 tasks=st.selectbox('Tasks',['EDA','Customer Segmentation','Churn Analysis','Predictive Modeling','Visualization and Reporting'])
@@ -59,6 +60,12 @@ class Tasks:
             LEFT JOIN orders o ON oi.order_id = o.order_id
         '''
         self.orders_item_product_df = pd.read_sql_query(self.orders_item_product_query, self.conn)
+        self.orders_item_product_df=pd.read_sql_query(self.orders_item_product_query,self.conn)
+        self.orders_item_product_df['order_purchase_timestamp']=pd.to_datetime(self.orders_item_product_df['order_purchase_timestamp'])
+        self.orders_item_product_df['year']=self.orders_item_product_df['order_purchase_timestamp'].dt.year
+        self.orders_item_product_df['order_purchase_timestamp']=self.orders_item_product_df['order_purchase_timestamp'].dt.strftime('%Y-%m-%d')
+
+
     def check_order(self):
         st.subheader('Explore the distribution of orders over time, analyzing trends in order volume and orderstatuses')
         self.order_status_options = ['All Status'] + list(self.order_df['order_status'].unique())
@@ -177,11 +184,8 @@ class Tasks:
             st.dataframe(data)
         return self.predictive_customer_demand()
     def predictive_customer_demand(self):
-        self.orders_item_product_df=pd.read_sql_query(self.orders_item_product_query,self.conn)
         product_category=['All Product']+list(self.orders_item_product_df['product_category_name'].unique())
         product_category=st.selectbox('',product_category)
-        self.orders_item_product_df['order_purchase_timestamp']=pd.to_datetime(self.orders_item_product_df['order_purchase_timestamp'])
-        self.orders_item_product_df['order_purchase_timestamp']=self.orders_item_product_df['order_purchase_timestamp'].dt.strftime('%Y-%m-%d')
         if product_category!='All Product':
             self.orders_item_product_df=self.orders_item_product_df[self.orders_item_product_df['product_category_name']==product_category]
         orders_item_product_pivot=self.orders_item_product_df.pivot_table(values='order_id',index='order_purchase_timestamp',aggfunc='count').reset_index().rename(columns={'order_id':'y','order_purchase_timestamp':'ds'})
@@ -211,11 +215,34 @@ class Tasks:
             st.write(f"MSE: {mse}")
         else:
             st.dataframe(orders_item_product_pivot)
-        self.conn.close()
-        self.conn_geo.close()
+        
             
      
-     
+    def product_quailty(self):
+        self.orders_item_product_quailty_pivot=self.orders_item_product_df.pivot_table(values='product_id',index='product_category_name',columns='year',aggfunc='count',fill_value=0).reset_index().rename(columns={'product_id':'Total Order'})
+        self.orders_item_product_quailty_pivot['change_2017_2016'] = ((self.orders_item_product_quailty_pivot[2017] - self.orders_item_product_quailty_pivot[2016]) / self.orders_item_product_quailty_pivot[2016]) * 100
+        self.orders_item_product_quailty_pivot['change_2018_2017'] = ((self.orders_item_product_quailty_pivot[2018] - self.orders_item_product_quailty_pivot[2017]) / self.orders_item_product_quailty_pivot[2017]) * 100
+        self.orders_item_product_quailty_pivot=self.orders_item_product_quailty_pivot[self.orders_item_product_quailty_pivot[self.orders_item_product_quailty_pivot.columns[1]]!=0]
+        labels = ['Huage  Decrease', 'Severe Decrease', 'Considerable Decrease', 'No Change', 'Normal Increase', 'Good Increase', 'Strong Increase', 'Significant Increase', 'Remarkable Increase']
+        bins = [-float('inf'), -200, -100, -20, 0, 20, 50, 100, 200, float('inf')]
+        self.orders_item_product_quailty_pivot['pcg'] = pd.cut(self.orders_item_product_quailty_pivot['change_2018_2017'], bins=bins, labels=labels, right=False)
+        select_category=st.selectbox('Select',list(self.orders_item_product_quailty_pivot['pcg'].unique()))
+        if select_category!='Select':
+            st.write(select_category)
+            self.orders_item_product_quailty_pivot_category=self.orders_item_product_quailty_pivot[self.orders_item_product_quailty_pivot['pcg'].str.contains(select_category)==True]
+            fig=px.histogram(self.orders_item_product_quailty_pivot_category,x='product_category_name',y='change_2018_2017')
+            st.plotly_chart(fig)
+            st.dataframe(self.orders_item_product_quailty_pivot_category)
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
 
 task= Tasks()
 if tasks == 'EDA':
@@ -227,5 +254,6 @@ if tasks=='Customer Segmentation':
 if tasks=='Predictive Modeling':
     task.predictive_modeling()
     
-
+if tasks=='Churn Analysis':
+    task.product_quailty()
     

@@ -68,6 +68,9 @@ class Tasks:
 
     def check_order(self):
         st.subheader('Explore the distribution of orders over time, analyzing trends in order volume and orderstatuses')
+        st.write("- Time Seies Equations $$ Y_t = T_t + S_t + R_t $$")
+        st.write("- if you select trend you will show the trend of order over time")
+        st.write("- if you select Seasonal you will show The order's volume varies over time, indicating the presence of seasonality.")
         self.order_status_options = ['All Status'] + list(self.order_df['order_status'].unique())
         self.order_status = st.selectbox('Select Order Status', self.order_status_options)
         if self.order_status!='All Status':
@@ -224,7 +227,7 @@ class Tasks:
             st.write(f"MSE: {mse}")
         else:
             st.dataframe(orders_item_product_pivot.rename(columns={'y':'Total Orders'}))
-        
+        st.subheader("- Notes: I am using the Facebook Prophet model for prediction because there is seasonality.")
             
      
     def product_quailty(self):

@@ -294,10 +294,11 @@ class Tasks:
         st.write('')
         st.markdown("<h1 style='text-align: center; color: red;'>Our Score</h1>", unsafe_allow_html=True)
         st.write("<h2 style='text-align: center;'>71.26%</h2>", unsafe_allow_html=True)
-        
-        
-        
-        
+    def Visualization(self):
+        st.write('')
+        url = 'https://app.powerbi.com/view?r=eyJrIjoiN2ExNDAzNjMtMTRiMS00OTg4LWFjNTgtOGE1YmM3MDA3YzJmIiwidCI6ImRmODY3OWNkLWE4MGUtNDVkOC05OWFjLWM4M2VkN2ZmOTVhMCJ9'
+        st.markdown(f'<iframe src="{url}" width="1200" height="600"></iframe>', unsafe_allow_html=True)
+
         
         
 
@@ -313,3 +314,5 @@ if tasks=='Predictive Modeling':
     
 if tasks=='Churn Analysis':
     task.product_quailty()
+if tasks=='Visualization and Reporting':
+    task.Visualization()

@@ -251,7 +251,8 @@ class Tasks:
         if select_category!='Select':
             st.markdown('Notes : Change it means the percentage of change from one year to the next')
             self.orders_item_product_quailty_pivot_category=self.orders_item_product_quailty_pivot[self.orders_item_product_quailty_pivot['pcg'].str.contains(select_category)==True]
-            fig=px.histogram(self.orders_item_product_quailty_pivot_category,x='product_category_name',y='change_2018_2017')
+            fig=px.histogram(self.orders_item_product_quailty_pivot_category,x='product_category_name',y='change_2018_2017',title="The percentage change from 2017 to 2018.",labels={'change_2018_2017':'%'})
+            fig.update_yaxes(title_text='%')
             st.plotly_chart(fig)
             st.dataframe(self.orders_item_product_quailty_pivot_category)
         #self.orders_item_product_quailty_pivot['pcg status']=np.where(self.orders_item_product_quailty_pivot['change_2018_2017']>0,1,0)
@@ -322,20 +323,7 @@ class Tasks:
             5. The NPS rate is not good, which means that many customers are not satisfied. Therefore, it is important to speak with these customers to understand the main reasons for their dissatisfaction and improve them.
             6. Engage with the top sales achievers to understand their strategies and share them with others.
             """)
-
-
-
-
-
-                    
-                    
-                    
-        
-        
-        
-        
-        
-        
+        st.subheader('Click on this link for more visualization')
         st.write('')
         url = 'https://app.powerbi.com/view?r=eyJrIjoiN2ExNDAzNjMtMTRiMS00OTg4LWFjNTgtOGE1YmM3MDA3YzJmIiwidCI6ImRmODY3OWNkLWE4MGUtNDVkOC05OWFjLWM4M2VkN2ZmOTVhMCJ9'
         st.markdown(url)

@@ -69,7 +69,7 @@ class Tasks:
     def check_order(self):
         st.subheader('Explore the distribution of orders over time, analyzing trends in order volume and orderstatuses')
         self.order_status_options = ['All Status'] + list(self.order_df['order_status'].unique())
-        self.order_status = st.selectbox('', self.order_status_options)
+        self.order_status = st.selectbox('Select Order Status', self.order_status_options)
         if self.order_status!='All Status':
             self.order_df=self.order_df[self.order_df['order_status']==self.order_status]
         self.order_df_pivot=self.order_df.pivot_table(values='order_id',index='order_purchase_timestamp',aggfunc='count').reset_index()
@@ -78,20 +78,19 @@ class Tasks:
             tabs = ["Actual Data", "Trend", "Seasonal", "Residual"]
             selected_tab = st.radio("Select Chart Types", tabs)
             if selected_tab == "Actual Data":
-                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.observed, labels={'y': 'Number of Orders', 'x': 'Date'},
+                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.observed, labels={'y': 'Total Orders', 'x': 'Date'},
                                 title='Actual Data')
             elif selected_tab == "Trend":
-                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.trend, labels={'y': 'Number of Orders', 'x': 'Date'},
+                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.trend, labels={'y': 'Total Orders', 'x': 'Date'},
                                 title='Trend')
             elif selected_tab == "Seasonal":
-                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.seasonal, labels={'y': 'Number of Orders', 'x': 'Date'},
+                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.seasonal, labels={'y':'Total Orders', 'x': 'Date'},
                                 title='Seasonal')
             elif selected_tab == "Residual":
-                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.resid, labels={'y': 'Number of Orders', 'x': 'Date'},
+                fig = px.line(x=self.order_df_pivot['order_purchase_timestamp'], y=self.result.resid, labels={'y': 'Total Orders', 'x': 'Date'},
                                 title='Residual')
             st.plotly_chart(fig)
-            st.markdown('1-about Trend graphs the most of status shows that there was a very large increase from the beginning of 2017 to the end, but a large fluctuation occurred at the end of 2017')
-            st.markdown('2-about Seasonal graphs shows seasonlaity')
+            st.markdown("This Charts shows there is an increase in sales from year to year and that sales fluctuate seasonally.")
             
        
         except:
@@ -126,16 +125,17 @@ class Tasks:
         st.plotly_chart(fig)
         st.write('Obviously, São Paulo and Rio de Janeiro are the two most in demand city')
     def customer_segmentation(self):
+        st.subheader("Notes: values it means the prices that customers paid.")
         orders_order_items_pivot=self.orders_order_items_df.pivot_table(values=['price','product_id'],index=['customer_id'],aggfunc={'price':'sum','product_id':'count'}).reset_index().sort_values(by='price',ascending=False)
         q2 = np.quantile(orders_order_items_pivot['price'], 0.50)
         q3 = np.quantile(orders_order_items_pivot['price'], 0.75)
         bins = [0, q2, q3, float('inf')]
         labels = ['Low', 'Medium', 'High']
-        st.write(f'Low-values: between 0 and {q2} price')
-        st.write(f'Medium-values: between {q2} and {q3} price')
-        st.write(f'High-values: above {q3} price')
+        st.write(f'- Low-values: The price between 0 and {q2}.')
+        st.write(f'- Medium-values: The price between {q2} and {q3} price')
+        st.write(f'- High-values: above {q3} price')
         orders_order_items_pivot['Segment Category'] = pd.cut(orders_order_items_pivot['price'], bins=bins, labels=labels, right=False)
-        fig=px.histogram(orders_order_items_pivot,x='Segment Category',title=' divide customers based on values',histnorm='percent')
+        fig=px.histogram(orders_order_items_pivot,x='Segment Category',title="This chart illustrates the percentage of customers in each category.",histnorm='percent')
         st.plotly_chart(fig)
         #################
         #city with product name
@@ -144,14 +144,14 @@ class Tasks:
         if self.city!='All City':
             self.productname_location_df=self.productname_location_df[self.productname_location_df['customer_city']==self.city]
         self.productname_location__pivot=self.productname_location_df.pivot_table(values='customer_city',index='product_category_name',aggfunc='count').reset_index().rename(columns={'customer_city':'Total Order'}).sort_values(by='Total Order',ascending=False)        
-        fig=px.histogram(self.productname_location__pivot,x='product_category_name',y='Total Order',title=' divide customers based on values')
+        fig=px.histogram(self.productname_location__pivot,x='product_category_name',y='Total Order',title='divide customers based on their orders')
         fig.update_layout(width=800, height=600) 
         st.plotly_chart(fig)
     ###############################################################################################
     def predictive_modeling(self):
         st.subheader('Forecast sales')
         self.order_status_options = ['All Status'] + list(self.order_df['order_status'].unique())
-        self.order_status = st.selectbox('', self.order_status_options)
+        self.order_status = st.selectbox('Select Order Status', self.order_status_options)
         if self.order_status!='All Status':
             self.order_df=self.order_df[self.order_df['order_status']==self.order_status]
         data=self.order_df.pivot_table(values='order_id',index=['order_purchase_timestamp'],aggfunc='count').reset_index()
@@ -174,9 +174,14 @@ class Tasks:
             fig.add_scatter(x=predictions['ds'], y=predictions['yhat_lower'], mode='lines', name='Lower Bound')
             fig.add_scatter(x=predictions['ds'], y=predictions['yhat_upper'], mode='lines', name='Upper Bound')
             fig.add_scatter(x=data['ds'], y=data['y'], mode='lines+markers', name='Original Data')
+            fig.add_scatter(x=predictions['ds'], y=predictions['trend'], mode='lines', name='Trend')
             fig.update_layout(width=800, height=600) 
+            st.write('The Green line represents trend')
+            st.write('The blue line represents forecasting')
             st.plotly_chart(fig)    
             st.dataframe(predictions.iloc[:,:5])
+            st.write(f"The blue color represents the forecasted values for the next {period} days.")
+            st.write("- This indicates that the company's orders were increasing from 2016 to 2017, then to 2018. However, in 2018, its orders started to decline.")
             mse = mean_squared_error(data['y'][-1* int(period):], predictions['yhat'][-1 * int(period):])
             st.write('MSE It is a metric used to measure the average squared difference between the estimated values and the actual values.')
             st.write(f"MSE: {mse}")
@@ -184,8 +189,9 @@ class Tasks:
             st.dataframe(data)
         return self.predictive_customer_demand()
     def predictive_customer_demand(self):
+        st.subheader('customer_demand based on product')
         product_category=['All Product']+list(self.orders_item_product_df['product_category_name'].unique())
-        product_category=st.selectbox('',product_category)
+        product_category=st.selectbox('Select Product name',product_category)
         if product_category!='All Product':
             self.orders_item_product_df=self.orders_item_product_df[self.orders_item_product_df['product_category_name']==product_category]
         orders_item_product_pivot=self.orders_item_product_df.pivot_table(values='order_id',index='order_purchase_timestamp',aggfunc='count').reset_index().rename(columns={'order_id':'y','order_purchase_timestamp':'ds'})
@@ -206,10 +212,13 @@ class Tasks:
             fig = px.line(predictions, x='ds', y='yhat', title='Predictive Customer demand')
             fig.add_scatter(x=predictions['ds'], y=predictions['yhat_lower'], mode='lines', name='Lower Bound')
             fig.add_scatter(x=predictions['ds'], y=predictions['yhat_upper'], mode='lines', name='Upper Bound')
-            fig.add_scatter(x=orders_item_product_pivot['ds'], y=orders_item_product_pivot['y'], mode='lines+markers', name='Original Data')
+            fig.add_scatter(x=orders_item_product_pivot['ds'], y=orders_item_product_pivot['y'], mode='lines', name='Original Data')
             fig.update_layout(width=800, height=600) 
+            fig.add_scatter(x=predictions['ds'], y=predictions['trend'], mode='lines', name='Trend')
+            st.write('The Green line represents trend')
+            st.write('The blue line represents forecasting')
             st.plotly_chart(fig)
-            st.dataframe(predictions.iloc[:,:5])
+            st.write(f"The blue color represents the forecasted values for the next {period} days.")
             mse = mean_squared_error(orders_item_product_pivot['y'][-1*int(period):], predictions['yhat'][-1*int(period):])
             st.write('MSE It is a metric used to measure the average squared difference between the estimated values and the actual values.')
             st.write(f"MSE: {mse}")

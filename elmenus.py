@@ -7,8 +7,8 @@ import sqlite3
 from datetime import datetime
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.metrics import mean_squared_error
+st.header('Elmenus Tasks')
 tasks=st.selectbox('Tasks',['EDA','Churn Analysis','Customer Segmentation','Predictive Modeling','Visualization and Reporting'])
-
 class Tasks:
     def __init__(self):
         self.database = "elmenus.db"

@@ -214,11 +214,23 @@ class Tasks:
             st.write('MSE It is a metric used to measure the average squared difference between the estimated values and the actual values.')
             st.write(f"MSE: {mse}")
         else:
-            st.dataframe(orders_item_product_pivot)
+            st.dataframe(orders_item_product_pivot.rename(columns={'y':'Total Orders'}))
         
             
      
     def product_quailty(self):
+        st.header('Evaluate the performance')
+        st.write('')
+        st.subheader("We create KPI's to show our performance.")
+        st.write("We create KPI's to show our performance, focusing on the following key points:")
+        st.write("- Number of products with increased sales assume 40%.")
+        st.write("- delivery speed assume 30%")
+        st.write("- Customer satisfaction rate assume 30%.")
+        st.write('')
+        st.write('')
+        st.subheader('1-Product Status: notes we have')
+        st.write("- 61.29% of the products increased their sales from 2017 to 2018.")
+        st.write("- 38.71% of the products decreased their sales.")
         self.orders_item_product_quailty_pivot=self.orders_item_product_df.pivot_table(values='product_id',index='product_category_name',columns='year',aggfunc='count',fill_value=0).reset_index().rename(columns={'product_id':'Total Order'})
         self.orders_item_product_quailty_pivot['change_2017_2016'] = ((self.orders_item_product_quailty_pivot[2017] - self.orders_item_product_quailty_pivot[2016]) / self.orders_item_product_quailty_pivot[2016]) * 100
         self.orders_item_product_quailty_pivot['change_2018_2017'] = ((self.orders_item_product_quailty_pivot[2018] - self.orders_item_product_quailty_pivot[2017]) / self.orders_item_product_quailty_pivot[2017]) * 100
@@ -226,17 +238,62 @@ class Tasks:
         labels = ['Huage  Decrease', 'Severe Decrease', 'Considerable Decrease', 'No Change', 'Normal Increase', 'Good Increase', 'Strong Increase', 'Significant Increase', 'Remarkable Increase']
         bins = [-float('inf'), -200, -100, -20, 0, 20, 50, 100, 200, float('inf')]
         self.orders_item_product_quailty_pivot['pcg'] = pd.cut(self.orders_item_product_quailty_pivot['change_2018_2017'], bins=bins, labels=labels, right=False)
-        select_category=st.selectbox('Select',list(self.orders_item_product_quailty_pivot['pcg'].unique()))
+        select_category=st.selectbox('Select Product Staus',list(self.orders_item_product_quailty_pivot['pcg'].unique()))
         if select_category!='Select':
-            st.write(select_category)
+            st.markdown('Notes : Change it means the percentage of change from one year to the next')
             self.orders_item_product_quailty_pivot_category=self.orders_item_product_quailty_pivot[self.orders_item_product_quailty_pivot['pcg'].str.contains(select_category)==True]
             fig=px.histogram(self.orders_item_product_quailty_pivot_category,x='product_category_name',y='change_2018_2017')
             st.plotly_chart(fig)
             st.dataframe(self.orders_item_product_quailty_pivot_category)
-        
-        
-        
-        
+        #self.orders_item_product_quailty_pivot['pcg status']=np.where(self.orders_item_product_quailty_pivot['change_2018_2017']>0,1,0)
+        #st.write(self.orders_item_product_quailty_pivot['pcg status'].value_counts(normalize=True))
+        #st.write(self.orders_item_product_quailty_pivot['pcg status'].value_counts())
+        return self.reviews_order()
+
+    def reviews_order(self):
+        #self.reviews_order_query='''select orders.*,order_reviews.review_score from orders left join order_reviews
+        #                        on order_reviews.order_id=orders.order_id'''
+        #self.reviews_order_df=pd.read_sql_query(self.reviews_order_query,self.conn)
+        #self.reviews_order_df['order_delivered_customer_date']=pd.to_datetime(self.reviews_order_df['order_delivered_customer_date'])
+        #self.reviews_order_df['order_estimated_delivery_date']=pd.to_datetime(self.reviews_order_df['order_estimated_delivery_date'])    
+        #self.reviews_order_df['days diff'] = (self.reviews_order_df['order_delivered_customer_date'] - self.reviews_order_df['order_estimated_delivery_date']).dt.days
+        #self.reviews_order_df['On Time Status']=np.where(self.reviews_order_df['days diff']>0,1,0)
+        #st.write(self.reviews_order_df['On Time Status'].value_counts(normalize=True))
+        st.subheader("2- Delivery Status")
+        st.write('')
+        st.write("- The percentage of orders delivered on time is 93.44%, and the percentage of delayed orders is 6.56%. This means that orders are almost never delayed.")
+        labels = ['On Time', 'Delayed']
+        values = [93.44, 6.56]
+        fig = px.pie(names=labels, values=values, title='Order Delivery Status')
+        st.plotly_chart(fig)
+        return self.satisfaction()
+    def satisfaction(self):
+        st.subheader('3- NPS or Net Promoter Score')
+        st.write('is a popular metric used to measure customer satisfaction and loyalty to a brand. It is typically calculated by subtracting the percentage of detractors (customers who express dissatisfaction with the product or service) from the percentage of promoters (customers who are encouraged to promote the product or service). This metric can be used to gauge loyalty and track changes in feedback over time.')
+        #label=['detractor','passive','poromoter']
+        #bin=[0,2,3,5]
+        #self.reviews_order_df=self.reviews_order_df[~self.reviews_order_df['review_score'].isna()]
+        #self.reviews_order_df['Customer Status']=pd.cut(self.reviews_order_df['review_score'],bins=bin,labels=label)
+        #self.reviews_order_df_pivot=self.reviews_order_df.pivot_table(values='order_id',index='Customer Status',aggfunc='count')
+        detractor = 14575
+        passive = 8179
+        promoter = 76470
+        total = detractor + passive + promoter
+        nps_score= (promoter - detractor) / total
+        st.write("Our NPS Percentage is: {:.2%}".format(nps_score) + " This percentage is low, so we should find the reason.")
+        labels = ['detractor', 'passive','Promoter']
+        values = [detractor, passive,promoter]
+        fig = px.pie(names=labels, values=values, title='NPS Score')
+        st.plotly_chart(fig)
+        st.write( 'Promoter (Satisfied) (4 or 5)',  'Passive (Not Bad, Not Good) (3)',  'Detractor (Dissatisfied) (1or 2)')        
+        ######################KPI's
+        st.subheader('Our performance score: ')
+        st.write("- product status 24.516.")
+        st.write("- Delivery Status 28.032")
+        st.write("- NPS Score 18.714")
+        st.write('')
+        st.markdown("<h1 style='text-align: center; color: red;'>Our Score</h1>", unsafe_allow_html=True)
+        st.write("<h2 style='text-align: center;'>71.26%</h2>", unsafe_allow_html=True)
         
         
         
@@ -256,4 +313,3 @@ if tasks=='Predictive Modeling':
     
 if tasks=='Churn Analysis':
     task.product_quailty()
-    

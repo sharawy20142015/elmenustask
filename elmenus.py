@@ -295,9 +295,41 @@ class Tasks:
         st.markdown("<h1 style='text-align: center; color: red;'>Our Score</h1>", unsafe_allow_html=True)
         st.write("<h2 style='text-align: center;'>71.26%</h2>", unsafe_allow_html=True)
     def Visualization(self):
+        st.subheader("Notes :")
+        st.write("- There was an increase in orders in 2018 compared to 2017 by 217, which is 19.75%. Additionally, there were significant increases in some products compared to 2017, such as fraldas_higiene, industria_comercio_e_negocios, alimentos, and other products.")
+        st.write("- There were some products that experienced a significant decrease in their orders, such as [brinquedos,ferramentas_jardim,cool_stuff]")
+        st.write("- The city with the highest Orders is Sao Paulo.")
+        st.write("- The majority of orders were made using credit.")
+        st.write("- The highest sales ID is 6560211a19b47992c3666cc44a7e94c0.")
+        st.write("- The customer satisfaction rate is not good enough,The satisfaction rate is approximately 62%.")
+        st.write('')
+        st.write('')
+        st.subheader("Recommendation :")
+        st.markdown("""
+            1. offering benefits to credit customers to increase their sales, such as interest-free installment plans and others.
+            2. There are some products that have experienced a significant decrease in sales. Therefore, they must be studied carefully, as this could lead to damage to our reputation.
+            3. Maintaining focus on the quality of products that have achieved high sales rates.
+            4. Developing a marketing strategy for products in other areas to achieve high sales, such as Sao Paulo.
+            5. The NPS rate is not good, which means that many customers are not satisfied. Therefore, it is important to speak with these customers to understand the main reasons for their dissatisfaction and improve them.
+            6. Engage with the top sales achievers to understand their strategies and share them with others.
+            """)
+
+
+
+
+
+                    
+                    
+                    
+        
+        
+        
+        
+        
+        
         st.write('')
         url = 'https://app.powerbi.com/view?r=eyJrIjoiN2ExNDAzNjMtMTRiMS00OTg4LWFjNTgtOGE1YmM3MDA3YzJmIiwidCI6ImRmODY3OWNkLWE4MGUtNDVkOC05OWFjLWM4M2VkN2ZmOTVhMCJ9'
-        st.markdown(f'<iframe src="{url}" width="1200" height="600"></iframe>', unsafe_allow_html=True)
+        st.markdown(url)
 
         
         

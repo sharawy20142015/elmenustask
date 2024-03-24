@@ -8,6 +8,8 @@ from datetime import datetime
 from statsmodels.tsa.seasonal import seasonal_decompose
 from sklearn.metrics import mean_squared_error
 st.header('Elmenus Tasks')
+st.write('Click On This link to see coding')
+st.write('https://github.com/sharawy20142015/elmenustask/blob/main/elmenus.py')
 tasks=st.selectbox('Tasks',['EDA','Churn Analysis','Customer Segmentation','Predictive Modeling','Visualization and Reporting'])
 class Tasks:
     def __init__(self):
